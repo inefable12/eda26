@@ -10,12 +10,12 @@ from io import BytesIO
 # ==========================================================
 
 st.set_page_config(
-    page_title="Data Science Lab",
-    layout="wide"
-)
+    page_title="Exploración de Datos", page_icon="📊")
 
-st.title("📊 Data Science Laboratory")
-st.write("Aplicativo para análisis, limpieza y visualización de datos.")
+st.sidebar.image("img/inEDA26.png", caption="Dr. Jesus Alvarado-Huayhuaz")
+
+st.title("Ciencia de Datos")
+st.write("Analiza, limpia y visualiza tus datos.")
 
 # ==========================================================
 # SESSION STATE
@@ -225,20 +225,64 @@ elif etapa == "Limpieza y procesamiento":
             st.success("Estandarización aplicada")
 
         # CÓDIGO PERSONALIZADO
-
+        
+        # ==========================================================
+        # CÓDIGO PERSONALIZADO CON VISUALIZACIÓN DE RESULTADOS
+        # ==========================================================
+        
         st.subheader("Ejecutar código Python")
-
+        
+        st.write("Puede usar `df` como el DataFrame actual.")
+        
         codigo = st.text_area(
-            "Escriba código usando df como DataFrame"
+            "Escriba código Python",
+            height=150,
+            placeholder='Ejemplo:\ndf["suma"] = df["A"] + df["B"]\ndf.head()'
         )
-
+        
         if st.button("Ejecutar código"):
+        
             try:
-                exec(codigo)
+        
+                # entorno seguro de ejecución
+                local_env = {"df": df, "pd": pd, "np": np}
+        
+                resultado = None
+        
+                try:
+                    # intentar evaluarlo como expresión
+                    resultado = eval(codigo, {}, local_env)
+        
+                except:
+                    # si no es expresión, ejecutarlo como bloque
+                    exec(codigo, {}, local_env)
+        
+                # actualizar dataframe por si fue modificado
+                df = local_env["df"]
                 st.session_state.processed_df = df
-                st.success("Código ejecutado")
+        
+                st.success("Código ejecutado correctamente")
+        
+                # mostrar resultado si existe
+                if resultado is not None:
+        
+                    st.subheader("Resultado")
+        
+                    if isinstance(resultado, pd.DataFrame):
+                        st.dataframe(resultado)
+        
+                    elif isinstance(resultado, pd.Series):
+                        st.dataframe(resultado)
+        
+                    else:
+                        st.write(resultado)
+        
+                # mostrar dataframe actualizado
+                st.subheader("DataFrame actualizado")
+                st.dataframe(df.head())
+        
             except Exception as e:
-                st.error(e)
+                st.error(f"Error en el código: {e}")
 
         # DESCARGA CSV
 
